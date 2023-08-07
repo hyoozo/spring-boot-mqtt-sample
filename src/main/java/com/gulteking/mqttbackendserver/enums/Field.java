@@ -1,14 +1,39 @@
 package com.gulteking.mqttbackendserver.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum Field {
-    HEADER, // 프레임의 시작 의미 'F7' 사용
-    DID,    // DEVICE ID, WIFI 모듈의 MAC 주소 뒷 6자리
-    DSUBID, // 제어기기의 SUB ID
-    CMD,    // 최상위 비트는 프레임의 전송 방향 표시 0: 모바일 > 디바이스 / 1: 디바이스 > 모바일
-    LEN,    // DATA 길이
-    DATA,   // 전송항 데이터 영역
-    XORSUM // HEADER 에서 XOR SUM 이전까지 XOR 결과값
+    HEADER(1),
+    DID(3),
+    DSUBID(1),
+    CMD(1),
+    LEN(1),
+    DATA(1),
+    XORSUM(1);
+
+    private final int byteLength;
+    private static final Map<Field, Byte> fieldValues = new HashMap<>();
+
+    static {
+        fieldValues.put(HEADER, (byte) 0);
+        fieldValues.put(DID, (byte) 1);
+        fieldValues.put(DSUBID, (byte) 2);
+        fieldValues.put(CMD, (byte) 3);
+        fieldValues.put(LEN, (byte) 4);
+        fieldValues.put(DATA, (byte) 5);
+        fieldValues.put(XORSUM, (byte) 6);
+    }
+
+    Field(int byteLength) {
+        this.byteLength = byteLength;
+    }
+
+    public int getByteLength() {
+        return byteLength;
+    }
+
+    public byte getByteValue() {
+        return fieldValues.get(this);
+    }
 }
-
-
-// 이넘이 필요가 있는지  .. 생각해 보자.

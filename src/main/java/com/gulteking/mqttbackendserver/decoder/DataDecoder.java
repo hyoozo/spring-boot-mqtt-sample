@@ -1,15 +1,12 @@
 package com.gulteking.mqttbackendserver.decoder;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.nio.charset.Charset;
-
 @Data
 @NoArgsConstructor
-public class DataDecoder extends MqttMessage {
+public class DataDecoder {
 
     private byte header;
     private int did;

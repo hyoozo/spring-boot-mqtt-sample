@@ -1,9 +1,6 @@
 package com.gulteking.mqttbackendserver.config;
 
-import org.eclipse.paho.client.mqttv3.IMqttClient;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.*;
 
 public class Mqtt {
 
@@ -22,6 +19,8 @@ public class Mqtt {
             options.setCleanSession(true);
             options.setConnectionTimeout(10);
 
+            instance.subscribe("#"); // 모든 토픽 구독
+
             if (!instance.isConnected()) {
                 instance.connect(options);
                 System.out.println("----Connected----");
@@ -31,6 +30,15 @@ public class Mqtt {
         }
         return instance;
     }
+
+    public void subscribeMethod(String topic, IMqttMessageListener messageListener) {
+        try {
+            instance.subscribe(topic, messageListener);
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private Mqtt() {
 
