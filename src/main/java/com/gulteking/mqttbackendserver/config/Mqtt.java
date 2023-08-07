@@ -8,7 +8,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 public class Mqtt {
 
     private static final String MQTT_PUBLISHER_ID = "spring-server"; // 어떤 아이디를 써야하지..
-    private static final String MQTT_SERVER_ADDRESS= "tcp://15.164.224.113:1883";
+    private static final String MQTT_SERVER_ADDRESS= "tcp://192.168.0.15:1883";
     private static IMqttClient instance;
 
     public static IMqttClient getInstance() {
@@ -24,6 +24,7 @@ public class Mqtt {
 
             if (!instance.isConnected()) {
                 instance.connect(options);
+                System.out.println("----Connected----");
             }
         } catch (MqttException e) {
             e.printStackTrace();
