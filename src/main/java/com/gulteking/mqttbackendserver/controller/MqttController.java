@@ -50,14 +50,14 @@ public class MqttController {
 
         MqttMessage mqttMessage = new MqttMessage();
         // payload 를 바이트 배열로 얻어와야 함.
-        byte[] payload = frame.getPayload();
+//        byte[] payload = frame.getPayload();
 //        frame.getBytes();
         /*
         * String payload = "Hello, MQTT!";
         * message.setPayload(payload.getBytes());
         * 페이로드는 스트링 -> 그걸 바이트로 바꾼다.
         * */
-        mqttMessage.setPayload(payload);
+//        mqttMessage.setPayload(payload);
         mqttMessage.setQos(0);
         mqttMessage.setRetained(true);
 

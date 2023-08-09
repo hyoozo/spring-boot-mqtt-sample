@@ -5,7 +5,8 @@ import org.eclipse.paho.client.mqttv3.*;
 public class Mqtt {
 
     private static final String MQTT_PUBLISHER_ID = "spring-server"; // 어떤 아이디를 써야하지..
-    private static final String MQTT_SERVER_ADDRESS= "tcp://192.168.0.15:1883";
+//    private static final String MQTT_SERVER_ADDRESS= "tcp://192.168.0.15:1883";
+    private static final String MQTT_SERVER_ADDRESS= "tcp://192.168.0.127:1883";
     private static IMqttClient instance;
 
     public static IMqttClient getInstance() {
@@ -19,7 +20,7 @@ public class Mqtt {
             options.setCleanSession(true);
             options.setConnectionTimeout(10);
 
-            instance.subscribe("#"); // 모든 토픽 구독
+            //instance.subscribe("#"); // 모든 토픽 구독
 
             if (!instance.isConnected()) {
                 instance.connect(options);

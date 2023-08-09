@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Arrays;
+import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,33 +24,47 @@ public class MqttBackendServerApplication {
             java.util.regex.Pattern 라이브러리 사용해서
             ^[a-zA-Z0-9]*$ 패턴 써서 영문자+숫자로 들어오는
          */
-
         try {
-
+            
             Mqtt.getInstance().subscribeWithResponse(topic,(s, mqttMessage) -> {
 
+                // pub 으로 부터 받음
                 MqttSubscribeModel mqttSubscribeModel = new MqttSubscribeModel();
                 mqttSubscribeModel.setId(mqttMessage.getId());
                 mqttSubscribeModel.setMessage(new String(mqttMessage.getPayload())); // ex) F7 4B B2 81 1F 01 00 XX
                 mqttSubscribeModel.setQos(mqttMessage.getQos());
 
-                System.out.println(new String(mqttMessage.getPayload()));
+                String message =mqttSubscribeModel.getMessage(); // "F7 4B B2 81 1F 01 00"
+                System.out.println(message);
+                String[] messageParts = message.split(" "); // 문자열을 공백을 기준으로 분리
+                String headerStr = messageParts[0]; // "F7"
+                System.out.println(headerStr);
+                String[] didStr =  {messageParts[1], messageParts[2], messageParts[3]};
+                String dsubidStr =  messageParts[4];
+                String cmdStr =  messageParts[5];
+                String lenStr =  messageParts[6];
+                String dataStr =  messageParts[7];
 
-                byte[] bytes = mqttMessage.getPayload();
-
-                System.out.println(Arrays.toString(bytes));
-
-                byte header = bytes[0];
-
+                byte header = (byte) Integer.parseInt(headerStr, 16); // 16진수 문자열을 바이트로 변환
+                System.out.println(header);
+                System.out.println("header = " + String.format("0x%02X", header)); // "header = 0xF7"
 
                 if (header == (byte) 0xF7) {
-                    byte cmd = bytes[5];
-                    byte[] did = {bytes[1],bytes[2],bytes[3]};  // int ??
-                    byte dsubid = bytes[4];
-                    byte len = bytes[6];
+                    System.out.println("header = F7");
+
+                    String combinedDidStr = String.join("", didStr); // didStr 배열 값들을 합쳐서 하나의 문자열로 만듦
+                    int combinedDidValue = Integer.parseInt(combinedDidStr, 16); // 16진수 문자열을 정수로 변환
+                    byte did = (byte) combinedDidValue; // 정수를 바이트로 변환
+
+                    byte cmd =  (byte) Integer.parseInt(cmdStr, 16);
+                    byte dsubid = (byte) Integer.parseInt(dsubidStr, 16);
+                    byte len = (byte) Integer.parseInt(lenStr, 16);
+                    byte data0 = (byte) Integer.parseInt(dataStr, 16);
 
                     switch (cmd) {
                         case (byte) 0x01:
+                            System.out.println("상태요구 (Android -> Device)");
+
                             if (dsubid == 0x1F) {
                                 System.out.println("전체 조명 데이터 상태 요구");
                             } else if (dsubid == 0x2F) {
@@ -57,11 +72,11 @@ public class MqttBackendServerApplication {
                             } else if (dsubid == 0x3F) {
                                 System.out.println("전체 환기 데이터 상태 요구");
                             } else if (dsubid == 0x4F) {
-                                System.out.println("전체 일괄 고등 스위치 데이터 상태 요구");
+                                System.out.println("전체 일괄 소등 스위치 데이터 상태 요구");
                             } else if (dsubid == 0x5F) {
                                 System.out.println("전체 타이머 상태 요구");
                             }
-                            System.out.println("상태요구 (Android -> Device)");
+
                             break;
                         case (byte) 0x41:
                             System.out.println("개별 동작 제어 요구 (Android -> Device)");
@@ -86,9 +101,21 @@ public class MqttBackendServerApplication {
                             break;
                         case (byte) 0x81:
                             System.out.println("상태 응답 (Device -> Android)");
+
+                            for (int i = 7; i >= 0; i--) {
+                                int bit = (data0 >> i) & 1;
+                                System.out.print(bit);
+                            }
+                            //응답 데이터 생성 메서드
+//                            MqttMessage responseMessage = new MqttMessage(new byte[]{header,did[0],did[1],did[2],dsubid,cmd,len,data0});
+//                            responseMessage.setQos(0);
+//                            responseMessage.setRetained(false);
+//                            Mqtt.getInstance().publish(topic, responseMessage);
+
                             break;
                         case (byte) 0xC1:
                             System.out.println("개별 동작 제어 응답 (Device -> Android)");
+                            // 위와 일치 -
                             break;
                         case (byte) 0xC2:
                             System.out.println("전체 동작 제어 응답 (Device -> Android)");
@@ -116,12 +143,6 @@ public class MqttBackendServerApplication {
 
                 } //if 종료
 
-                /* DATA0 에 대한 비트 단위 행동결과 분석 */
-                Byte c = null;
-                for (int i = 7; i >= 0; i--) {
-                    int bit = (c >> i) & 1;
-                    //c는 1byte값
-                }
 
                 MqttMessage publishmqttMessage = new MqttMessage(new byte[]{0x11,0x12});
                 mqttMessage.setQos(0);
@@ -135,6 +156,12 @@ public class MqttBackendServerApplication {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private static JSONObject createJsonPayload(String key, String value) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(key, value);
+        return jsonObject;
     }
 
 }
